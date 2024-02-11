@@ -1,0 +1,66 @@
+syntax = "proto3";
+option go_package = "github.com/amitramachandran/train-grpc/boardTrain";
+
+message User{
+    string Firstname = 1;
+    string Lastname = 2;
+    string EmailAddress = 3;
+    int32 Id = 4;
+}
+
+message Transit{
+    string From = 1;
+    string To = 2;
+}
+
+message Price{
+    double Amount = 1;
+    string Currency = 2;
+}
+
+message TicketRequest{
+    Transit route = 1;
+    User passenger = 2;
+}
+
+message TicketResponse{
+    string From = 1;
+    string To = 2;
+    User UserDetails = 3;
+    Price PriceDetails = 4;
+}
+
+message Seat{
+    string Section = 1;
+    int32 Number = 2;
+}
+
+message UserRequest{
+    string EmailAddress = 1;
+}
+
+message SectionRequest {
+    string Section = 1;
+}
+
+message SeatResponse {
+    repeated User Users = 1;
+}
+
+message StatusResponse {
+    string Message = 1;
+}
+
+message ModifySeatRequest {
+    string EmailAddress = 1;
+    string NewSeat = 2;
+}
+
+
+service Boarding {
+    rpc purchaseTicket(TicketRequest) returns (TicketResponse);
+    rpc getReceipt(UserRequest) returns (TicketResponse);
+    rpc removeUser(UserRequest) returns (StatusResponse);
+    rpc modifySeat(ModifySeatRequest) returns (StatusResponse);
+    rpc viewSeats(SectionRequest) returns (SeatResponse);
+}

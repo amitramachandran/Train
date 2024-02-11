@@ -1,0 +1,1 @@
+protoc --go_out=boardTrain --go_opt=paths=source_relative --go-grpc_out=boardTrain --go-grpc_opt=paths=source_relative boardTrain.proto
