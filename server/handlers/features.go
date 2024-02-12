@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 
@@ -16,6 +17,7 @@ type BoardTrainServer struct {
 	tickets  map[string]*bt.TicketResponse
 	seats    map[string]*bt.Seat
 	nextSeat string
+	l        *log.Logger
 }
 
 func NewServer() *BoardTrainServer {
@@ -24,6 +26,7 @@ func NewServer() *BoardTrainServer {
 		tickets:  make(map[string]*bt.TicketResponse),
 		seats:    make(map[string]*bt.Seat),
 		nextSeat: "",
+		l:        log.New(io.Discard, "TrainBooking", 1),
 	}
 }
 
@@ -34,10 +37,10 @@ func (s *BoardTrainServer) PurchaseTicket(ctx context.Context, req *bt.TicketReq
 	//assign a seat
 	seat, err := s.assignSeat(req.Passenger.EmailAddress)
 	if err != nil {
-		log.Printf("Cannot assign seat for passenger %s : %v", req.Passenger.Firstname, err)
+		s.l.Printf("Cannot assign seat for passenger %s : %v", req.Passenger.Firstname, err)
 		return &bt.TicketResponse{}, err
 	}
-	log.Printf("Seat assigned for %s : section %s number %d", req.Passenger.Firstname, seat.Section, seat.Number)
+	s.l.Printf("Seat assigned for %s : section %s number %d", req.Passenger.Firstname, seat.Section, seat.Number)
 
 	receipt := &bt.TicketResponse{
 		From: req.Route.From,
@@ -63,10 +66,10 @@ func (s *BoardTrainServer) GetReceipt(ctx context.Context, req *bt.UserRequest) 
 
 	resp, err := s.tickets[req.EmailAddress]
 	if !err {
-		log.Printf("The provided email has no history of ticket purchase")
+		s.l.Printf("The provided email has no history of ticket purchase")
 		return &bt.TicketResponse{}, errors.New("user not found")
 	}
-	log.Printf("Receipt received %v", resp)
+	s.l.Printf("Receipt received %v", resp)
 	return resp, nil
 }
 
@@ -98,6 +101,7 @@ func (s *BoardTrainServer) RemoveUser(ctx context.Context, req *bt.UserRequest) 
 
 	_, ok := s.seats[req.EmailAddress]
 	if !ok {
+		s.l.Printf("User not found %s", req.EmailAddress)
 		return &bt.StatusResponse{}, errors.New("user not found")
 	}
 
@@ -114,13 +118,13 @@ func (s *BoardTrainServer) ModifySeat(ctx context.Context, req *bt.ModifySeatReq
 	defer s.mu.Unlock()
 
 	if !checkSectionValid(req.NewSeat) {
-		log.Printf("Provided seat number is not valid, valid example : A4")
+		s.l.Printf("Provided seat number is not valid, valid example : A4")
 		return &bt.StatusResponse{}, errors.New("user section is not valid in reqeust")
 	}
 
 	newSection, newSeatNumber, err := splitSeatNumberFromSection(req.NewSeat)
 	if err != nil {
-		log.Printf("Not able to convert the string to number")
+		s.l.Printf("Not able to convert the string to number")
 		return &bt.StatusResponse{}, errors.New("seat request is not valid in request")
 
 	}

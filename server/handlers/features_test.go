@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	bt "github.com/amitramachandran/train-grpc/boardTrain"
@@ -43,13 +42,13 @@ func TestPurchaseTicket(t *testing.T) {
 			},
 		}
 		mockserver.nextSeat = "B10"
-		fmt.Printf("%v", mockserver)
 		_, err := mockserver.PurchaseTicket(context.Background(), mockTicketRequest)
 		assert.NotNil(t, err)
 	})
 }
 
 func TestGetReceipt(t *testing.T) {
+
 	t.Run("happy path", func(t *testing.T) {
 		mockgetReceipt := &bt.UserRequest{
 			EmailAddress: "amit@gmail.com",
@@ -69,6 +68,7 @@ func TestGetReceipt(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
+
 	t.Run("happy path", func(t *testing.T) {
 		mockremoveuser := &bt.UserRequest{
 			EmailAddress: "amit@gmail.com",
@@ -89,6 +89,7 @@ func TestRemoveUser(t *testing.T) {
 }
 
 func TestViewSeats(t *testing.T) {
+
 	t.Run("happy path", func(t *testing.T) {
 		mockViewSeat := &bt.SectionRequest{
 			Section: "A",
@@ -98,16 +99,28 @@ func TestViewSeats(t *testing.T) {
 		assert.NotNil(t, resp)
 	})
 
-	t.Run("sad path", func(t *testing.T) {
+	t.Run("sad path - user not found error", func(t *testing.T) {
 		mockViewSeat := &bt.SectionRequest{
 			Section: "Z",
 		}
 		_, err := mockserver.ViewSeats(context.Background(), mockViewSeat)
-		assert.NotNil(t, err)
+		assert.EqualError(t, err, "no seats have been booked yet")
+	})
+
+	t.Run("sad path - section not there", func(t *testing.T) {
+		mockViewSeat := &bt.SectionRequest{
+			Section: "Z",
+		}
+		mockserver.tickets[mockViewSeat.Section] = &bt.TicketResponse{From: "Italy", To: "France", UserDetails: &bt.User{EmailAddress: "Amit.r@gmail.com"}}
+		resp, err := mockserver.ViewSeats(context.Background(), mockViewSeat)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, 0, len(resp.Users))
 	})
 }
 
 func TestModifySeat(t *testing.T) {
+
 	t.Run("Happy path", func(t *testing.T) {
 		mockModifySeat := &bt.ModifySeatRequest{
 			EmailAddress: "amit@gmail.com",
