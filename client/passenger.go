@@ -27,6 +27,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	//To add routes for travelling - admin work
+	addRouteResp, err := c.AddRoutes(ctx, requests.AddRouteRequest())
+	if err != nil {
+		log.Fatalf("Not able to add routes, %v", err)
+	}
+	fmt.Println(addRouteResp)
+
 	// To purchase a ticket
 	purchaseticketresp, err := c.PurchaseTicket(ctx, requests.GetTicketRequest())
 	if err != nil {

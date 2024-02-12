@@ -2,12 +2,18 @@ package requests
 
 import bt "github.com/amitramachandran/train-grpc/boardTrain"
 
+func AddRouteRequest() *bt.RouteRequest {
+	routeReq := &bt.RouteRequest{
+		RouteID:     1,
+		Route:       &bt.Transit{From: "france", To: "italy"},
+		RouteCharge: &bt.Price{Amount: 20.00, Currency: "dollars"},
+	}
+	return routeReq
+}
+
 func GetTicketRequest() *bt.TicketRequest {
 	purchaseReq := &bt.TicketRequest{
-		Route: &bt.Transit{
-			From: "France",
-			To:   "Italy",
-		},
+		RouteID: 1,
 		Passenger: &bt.User{
 			Firstname:    "amit",
 			Lastname:     "Kumar",

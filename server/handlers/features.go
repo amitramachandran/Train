@@ -13,21 +13,42 @@ import (
 
 type BoardTrainServer struct {
 	bt.UnimplementedBoardingServer
-	mu       sync.Mutex
-	tickets  map[string]*bt.TicketResponse
-	seats    map[string]*bt.Seat
-	nextSeat string
-	l        *log.Logger
+	mu           sync.Mutex
+	tickets      map[string]*bt.TicketResponse
+	seats        map[string]*bt.Seat
+	routes       map[int]*bt.Transit
+	routeCharges map[int]*bt.Price
+	nextSeat     string
+	l            *log.Logger
 }
 
 func NewServer() *BoardTrainServer {
 	return &BoardTrainServer{
-		mu:       sync.Mutex{},
-		tickets:  make(map[string]*bt.TicketResponse),
-		seats:    make(map[string]*bt.Seat),
-		nextSeat: "",
-		l:        log.New(io.Discard, "TrainBooking", 1),
+		mu:           sync.Mutex{},
+		tickets:      make(map[string]*bt.TicketResponse),
+		seats:        make(map[string]*bt.Seat),
+		routes:       make(map[int]*bt.Transit),
+		routeCharges: make(map[int]*bt.Price),
+		nextSeat:     "",
+		l:            log.New(io.Discard, "TrainBooking", 1),
 	}
+}
+
+func (s *BoardTrainServer) AddRoutes(ctx context.Context, req *bt.RouteRequest) (*bt.StatusResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.routes[int(req.RouteID)] = &bt.Transit{
+		From: req.Route.From,
+		To:   req.Route.To,
+	}
+
+	s.routeCharges[int(req.RouteID)] = &bt.Price{
+		Amount:   req.RouteCharge.Amount,
+		Currency: req.RouteCharge.Currency,
+	}
+	s.l.Printf("Route added %v", s.routes)
+	return &bt.StatusResponse{Message: "Route added successfully"}, nil
 }
 
 func (s *BoardTrainServer) PurchaseTicket(ctx context.Context, req *bt.TicketRequest) (*bt.TicketResponse, error) {
@@ -42,15 +63,22 @@ func (s *BoardTrainServer) PurchaseTicket(ctx context.Context, req *bt.TicketReq
 	}
 	s.l.Printf("Seat assigned for %s : section %s number %d", req.Passenger.Firstname, seat.Section, seat.Number)
 
+	if len(s.routes) == 0 {
+		return &bt.TicketResponse{}, errors.New("no routes are added, add and purchase tickets for added routes")
+	}
+
+	passenger_route := s.routes[int(req.GetRouteID())]
+	passenger_routeCharge := s.routeCharges[int(req.GetRouteID())]
+
 	receipt := &bt.TicketResponse{
-		From: req.Route.From,
-		To:   req.Route.To,
+		From: passenger_route.From,
+		To:   passenger_route.To,
 		UserDetails: &bt.User{
 			EmailAddress: req.Passenger.EmailAddress,
 		},
 		PriceDetails: &bt.Price{
-			Amount:   20.00,
-			Currency: "dollars",
+			Amount:   passenger_routeCharge.Amount,
+			Currency: passenger_routeCharge.Currency,
 		},
 	}
 

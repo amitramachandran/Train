@@ -18,8 +18,14 @@ message Price{
     string Currency = 2;
 }
 
+message RouteRequest{
+    int32 routeID = 1;
+    Transit route = 2;
+    Price   routeCharge = 3;
+}
+
 message TicketRequest{
-    Transit route = 1;
+    int32 routeID = 1;
     User passenger = 2;
 }
 
@@ -63,4 +69,5 @@ service Boarding {
     rpc removeUser(UserRequest) returns (StatusResponse);
     rpc modifySeat(ModifySeatRequest) returns (StatusResponse);
     rpc viewSeats(SectionRequest) returns (SeatResponse);
+    rpc AddRoutes(RouteRequest) returns (StatusResponse);
 }

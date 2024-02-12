@@ -23,6 +23,7 @@ type BoardingClient interface {
 	RemoveUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	ModifySeat(ctx context.Context, in *ModifySeatRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	ViewSeats(ctx context.Context, in *SectionRequest, opts ...grpc.CallOption) (*SeatResponse, error)
+	AddRoutes(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 }
 
 type boardingClient struct {
@@ -78,6 +79,15 @@ func (c *boardingClient) ViewSeats(ctx context.Context, in *SectionRequest, opts
 	return out, nil
 }
 
+func (c *boardingClient) AddRoutes(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
+	out := new(StatusResponse)
+	err := c.cc.Invoke(ctx, "/Boarding/AddRoutes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BoardingServer is the server API for Boarding service.
 // All implementations must embed UnimplementedBoardingServer
 // for forward compatibility
@@ -87,6 +97,7 @@ type BoardingServer interface {
 	RemoveUser(context.Context, *UserRequest) (*StatusResponse, error)
 	ModifySeat(context.Context, *ModifySeatRequest) (*StatusResponse, error)
 	ViewSeats(context.Context, *SectionRequest) (*SeatResponse, error)
+	AddRoutes(context.Context, *RouteRequest) (*StatusResponse, error)
 	mustEmbedUnimplementedBoardingServer()
 }
 
@@ -108,6 +119,9 @@ func (UnimplementedBoardingServer) ModifySeat(context.Context, *ModifySeatReques
 }
 func (UnimplementedBoardingServer) ViewSeats(context.Context, *SectionRequest) (*SeatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ViewSeats not implemented")
+}
+func (UnimplementedBoardingServer) AddRoutes(context.Context, *RouteRequest) (*StatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRoutes not implemented")
 }
 func (UnimplementedBoardingServer) mustEmbedUnimplementedBoardingServer() {}
 
@@ -212,6 +226,24 @@ func _Boarding_ViewSeats_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Boarding_AddRoutes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RouteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BoardingServer).AddRoutes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Boarding/AddRoutes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BoardingServer).AddRoutes(ctx, req.(*RouteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Boarding_ServiceDesc is the grpc.ServiceDesc for Boarding service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +270,10 @@ var Boarding_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "viewSeats",
 			Handler:    _Boarding_ViewSeats_Handler,
+		},
+		{
+			MethodName: "AddRoutes",
+			Handler:    _Boarding_AddRoutes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

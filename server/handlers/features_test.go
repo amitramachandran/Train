@@ -13,10 +13,7 @@ var mockserver = NewServer()
 func TestPurchaseTicket(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		mockTicketRequest := &bt.TicketRequest{
-			Route: &bt.Transit{
-				From: "France",
-				To:   "Italy",
-			},
+			RouteID: 1,
 			Passenger: &bt.User{
 				Firstname:    "amit",
 				Lastname:     "Kumar",
@@ -30,10 +27,7 @@ func TestPurchaseTicket(t *testing.T) {
 
 	t.Run("sad path when the section is completely booked", func(t *testing.T) {
 		mockTicketRequest := &bt.TicketRequest{
-			Route: &bt.Transit{
-				From: "France",
-				To:   "Germany",
-			},
+			RouteID: 2,
 			Passenger: &bt.User{
 				Firstname:    "amit",
 				Lastname:     "Kumar",
