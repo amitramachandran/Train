@@ -20,6 +20,8 @@ func main() {
 	bt.RegisterBoardingServer(serviceRegister, handlers.NewServer())
 	err = serviceRegister.Serve(lis)
 	if err != nil {
-		log.Fatalf("impossible to serve %s", err)
+		log.Printf("impossible to serve %s", err)
+		serviceRegister.GracefulStop()
 	}
+
 }
