@@ -11,6 +11,7 @@ import (
 
 func main() {
 	lis, err := net.Listen("tcp", ":8099")
+	log.Printf("listening on %s\n", lis.Addr())
 	if err != nil {
 		log.Fatalf("Cannot create listener: %+v", err)
 	}
