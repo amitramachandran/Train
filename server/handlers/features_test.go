@@ -84,21 +84,21 @@ func TestRemoveUser(t *testing.T) {
 
 func TestViewSeats(t *testing.T) {
 
-	t.Run("happy path", func(t *testing.T) {
-		mockViewSeat := &bt.SectionRequest{
-			Section: "A",
-		}
-		mockserver.tickets[mockViewSeat.Section] = &bt.TicketResponse{}
-		resp, _ := mockserver.ViewSeats(context.Background(), mockViewSeat)
-		assert.NotNil(t, resp)
-	})
-
 	t.Run("sad path - user not found error", func(t *testing.T) {
 		mockViewSeat := &bt.SectionRequest{
 			Section: "Z",
 		}
 		_, err := mockserver.ViewSeats(context.Background(), mockViewSeat)
 		assert.EqualError(t, err, "no seats have been booked yet")
+	})
+
+	t.Run("happy path", func(t *testing.T) {
+		mockViewSeat := &bt.SectionRequest{
+			Section: "A",
+		}
+		mockserver.tickets[mockViewSeat.Section] = &bt.TicketResponse{From: "Italy", To: "France", UserDetails: &bt.User{EmailAddress: "Amit.r@gmail.com"}}
+		resp, _ := mockserver.ViewSeats(context.Background(), mockViewSeat)
+		assert.NotNil(t, resp)
 	})
 
 	t.Run("sad path - section not there", func(t *testing.T) {
